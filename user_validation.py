@@ -1,47 +1,64 @@
 import re
-from datetime import datetime
+from typing import Optional
 
 
-class ValidationUtils:
+class UserValidation:    
     @staticmethod
-    def check_email(value: str) -> bool:
-        if not value or not isinstance(value, str) or not value.strip():
+    def validate_email(email: Optional[str]) -> bool:
+        if email is None or email == "":
             return False
-        pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
-        return bool(re.fullmatch(pattern, value))
-
+        
+        email_pattern = r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        
+        return re.match(email_pattern, email) is not None
+    
     @staticmethod
-    def check_username(name: str) -> bool:
-        if not name or not isinstance(name, str) or not name.strip():
+    def validate_username(username: Optional[str]) -> bool:
+        if username is None or username == "":
             return False
-        pattern = r"^[A-Za-z0-9_]{3,20}$"
-        return bool(re.fullmatch(pattern, name))
-
+        
+        username_pattern = r'^[a-zA-Z0-9_]{3,20}$'
+        
+        return re.match(username_pattern, username) is not None
+    
     @staticmethod
-    def check_phone(num: str) -> bool:
-        if not num or not isinstance(num, str) or not num.strip():
+    def validate_phone_number(phone: Optional[str]) -> bool:
+        if phone is None or phone == "":
             return False
-        pattern = r"^(?:20)?(10|11|12|15)\d{8}$"
-        return bool(re.fullmatch(pattern, num))
-
+        
+        local_pattern = r'^(010|011|012|015)\d{8}$'
+        international_pattern = r'^20(10|11|12|15)\d{8}$'
+        
+        return (re.match(local_pattern, phone) is not None or 
+                re.match(international_pattern, phone) is not None)
+    
     @staticmethod
-    def check_national_id(nid: str) -> bool:
-        if not nid or not isinstance(nid, str) or not nid.strip():
+    def validate_national_id(national_id: Optional[str]) -> bool:
+        if national_id is None or national_id == "":
             return False
-        if not re.fullmatch(r"\d{14}", nid):
+        
+        if not re.match(r'^\d{14}$', national_id):
             return False
-        century = nid[0]
-        yy = int(nid[1:3])
-        mm = int(nid[3:5])
-        dd = int(nid[5:7])
-        gov = int(nid[7:9])
-        if century not in {"2", "3"}:
+        
+        century = national_id[0]
+        year = national_id[1:3]
+        month = national_id[3:5]
+        day = national_id[5:7]
+        governorate = national_id[7:9]
+        
+        if century not in ['2', '3']:
             return False
-        try:
-            year = (1900 if century == "2" else 2000) + yy
-            datetime(year, mm, dd)
-        except ValueError:
+        
+        month_int = int(month)
+        if month_int < 1 or month_int > 12:
             return False
-        if not (1 <= gov <= 88):
+        
+        day_int = int(day)
+        if day_int < 1 or day_int > 31:
             return False
+        
+        governorate_int = int(governorate)
+        if governorate_int < 1 or governorate_int > 88:
+            return False
+        
         return True
